@@ -1,0 +1,111 @@
+/**
+ * Fractions V1
+ * Recieves a text file with a list of fractions and prints each unique fraction and how many times it appears in the file
+ * Created by mingq on 4/4/2018
+ */
+
+/*
+    Answer the following questions using multi-line comments in your code:
+
+    Can you complete this without using arrays? What is the least number of variables you can use to solve this problem?
+    By using 2 temporary variables it is possible to avoid usage of arrays. All that's necessary is the fraction that's being counted, and a counter variable.
+
+    Can you use just one array to solve this? What would the data type be of that array?
+    If you were to just have a string array and store each line of the text as an element, you could create a way to search the array for occurances of unique fractions.
+
+    Can you nest* one class (data type) within another, like we observe with nested loops? What is an example of this? (*compose)
+    Yes, if we were to store just the string of the fraction as an array rather then splitting it and creating a numerator and denominator array.
+
+    What are some solutions to the reduction problem other than Euclid's GCD (greatest common divisor) algorithm? (You may want to look up GCD online.)
+    Using the mod function we could simplify each fraction individually and check GCD's from there.
+ */
+
+import java.io.FileInputStream; //"turns" the file into a read stream
+import java.util.Scanner; //reads from stream
+import java.io.IOException;//Try catch
+import java.io.File;//Records as file
+
+public class FractionsV1 {
+
+    public static void main (String [] args) {
+        Scanner input = null;//I set everything to null here to declare each FileIO variable
+        FileInputStream fis = null;
+        int lines = 0; //the lines variable counts how many lines there are (or fractions), for future use in arrays
+        try {//the first try catch is used solely to figure out how many lines, or fractions, are in the file
+            File f = new File("fractions.txt");//imports file
+            fis = new FileInputStream(f); //fis for the file, but apparently this isn't necessary and doesn't do anything for the class
+            input = new Scanner(fis); //scans the file
+            while (input.hasNextLine()) { //while loop to record each line
+                lines++; //adds line
+                input.nextLine(); //moves to next line
+            }
+        } catch (IOException e) {
+            System.out.println("Error. File not found.");
+            System.exit(0);
+        } finally { //finally here to close out the loop if input does not equal null
+            if (input != null) {
+                input.close();
+            }
+        }
+
+        int[] num = new int[lines];//Unique numerators, keep in mind many elements here will be a 0, so we need to get rid of these later
+        int[] den = new int[lines];//Unique denominators, many elements will be 0
+        int[] count = new int[lines];//Count array is used to count how many of the fraction there are in the file
+        //These 3 arrays are lined up so that if num[0] = 6 and den[0] = 3, then count[0] applies to 6/3 and all other similar fractions
+        int numElements = 0; //numElements are used to keep track of how many actual numbers are in num and den, and not just zeros
+
+        try { //a new try loop, this time to 1. record the fractions as a string 2. parse the string 3. figure out if the fraction is unique
+            File f = new File("fractions.txt");
+            fis = new FileInputStream(f); //Everything in this try catch is the same as the first one structure wise, the change being what's inside the while loop
+            input = new Scanner(fis);
+            while (input.hasNextLine()) {
+                String tempFraction = input.nextLine();//tempFraction is the string recorded in the text
+                String[] parts = tempFraction.split("/");//we create an array "parts" to be split into two, a temperory numerator and a temporary denominator
+                int tempNum = Integer.parseInt(parts[0]);
+                int tempDen = Integer.parseInt(parts[1]);
+                boolean found = false; //found is a condition we use later to detect if the temporary fraction was added to the unique fraction list
+
+
+                for (int i = 0; i <= numElements; i++) { //we use this for loop to go through if the current temporary fraction is equal to one of our unique fractions
+                    if (fractionsEqual(tempNum, tempDen, num[i], den[i])) {
+                        count[i]++;//remember that the arrays are lined up, meaning that at that point the number in the count array will increase by 1.
+                        found = true;//set found = true to avoid an if statement later where we add the temporary fraction to our list of unique fractions
+                        break;
+                    }
+                }
+
+                if (!found) {//now we add the temporary fraction to our arrays of unique fractions
+                    num[numElements] = tempNum;
+                    den[numElements] = tempDen;
+                    numElements++;
+                }
+                count[numElements] = 1; //because we just added a new unique fraction, we increase the count counter of this fraction by 1.
+            }
+        } catch (IOException e) {
+            System.out.println("Error. File not found.");
+            System.exit(0);
+        } finally {
+            if (input != null) {
+                input.close();
+            }
+        }
+        for (int i = 0; i < num.length; i++){
+            if (den[i] != 0){//again we use this condition to dodge the fractions in our unique fraction arrays that are 0/0.
+                System.out.println(num[i] + "/" + den[i] + " has a count of " + count[i]);
+                System.out.println();
+            }
+
+        }
+    }
+
+    public static boolean fractionsEqual(int num1, int den1, int num2, int den2){//If we have a/b and c/d, then we can use ad = bc to check if the fractions are the same.
+        if (den2 == 0 || den1 == 0){ //I included this condition because initially every single element in our unique fraction arrays will be 0. We use this to throw away that condition.
+            return false;
+        }
+        if (num1 * den2 == num2 * den1){//as discussed above, a/b = c/d, so ad = bc
+            return true;
+        }
+        return false;
+    }
+}
+
